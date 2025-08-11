@@ -22,28 +22,14 @@ A Python port of a MATLAB duplicate-finder pipeline, designed to work with the *
 
 ## Requirements
 
-- **Python 3.8+**
+- **Python 3.8+** - I am using Python 3.13
 - Hydrus client running with API enabled
-
-### Dependencies
-
-```bash
-pip install requests pillow opencv-python scikit-image tqdm
-```
-
-**Optional** (for MS-SSIM):
-
-```bash
-pip install torch pytorch-msssim
-```
-
----
 
 ## Setup
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/hydrus-duplicate-finder-python.git
+git clone [https://github.com/yourusername/hydrus-duplicate-finder-python.git](https://github.com/ytypo123/hydrus-duplicate-finder-python)
 cd hydrus-duplicate-finder-python
 ```
 
@@ -64,8 +50,8 @@ pip install -r requirements.txt
 {
   "api_key": "your-hydrus-api-key-here",
   "api_url": "http://127.0.0.1",
-  "api_port": 42001,
-  "tags": ["system:filetype is video", "meta:pd"],
+  "api_port": your-port-here,
+  "tags": ["system:filetype is video"],
   "verbose": false,
   "progress": {
     "enabled": true,
@@ -143,10 +129,7 @@ python hydrus_dupe_finder.py
 
 ## Notes
 
-- The script is tuned for **video files**, but can work on still images with minor adjustments.
-- For best performance:
-  - Keep your Hydrus API on a local network.
-  - For stricter matching, raise `similarity_threshold` and/or disable MS-SSIM.
+- ChatGPT helped a lot but it works.
 
 ---
 
