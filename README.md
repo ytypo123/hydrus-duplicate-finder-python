@@ -152,4 +152,4 @@ python hydrus_dupe_finder.py
 
 ## License
 
-[MIT](LICENSE)
+GPL-3
