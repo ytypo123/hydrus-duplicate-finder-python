@@ -1,0 +1,8 @@
+requests
+pillow
+numpy
+opencv-python
+scikit-image
+tqdm
+torch
+pytorch-msssim
