@@ -283,53 +283,100 @@ def compare_thumbnails(api_url, api_key, file_hashes, pairs, threshold, P, timeo
 
 
 # ---------- Main ----------
+# ... all your imports and function definitions stay the same ...
+
 def main():
     C = _load_config("hydrus_config.json")
+
     api_url = f"{C['api_url']}:{C['api_port']}"
     api_key = C["api_key"]
     VERBOSE = bool(C.get("verbose", False))
+    skip = C.get("skip_filters", {})
 
     ver = api_version(api_url, api_key, C["timeouts"]["api"])
     if VERBOSE:
         print(f"Hydrus API version: {ver}")
 
+    # Step 1: Fetch hashes
     tags = C["tags"]
     hashes = search_hashes(api_url, api_key, tags, C["timeouts"]["api"])
-    print(f"Got {len(hashes)} hashes")
-    if not hashes:
+    n = len(hashes)
+    print(f"Got {n} hashes")
+    if n == 0:
         return
 
+    # Step 2: Metadata
     meta = get_metadata_batched(api_url, api_key, hashes, only_basic=True, timeout=C["timeouts"]["api"])
+    if VERBOSE:
+        print(f"Fetched metadata for {len(meta)} files")
+
     durations = [m.get("duration", 0) or 0 for m in meta]
-    widths = [m.get("width", 0) or 0 for m in meta]
-    heights = [m.get("height", 0) or 1 for m in meta]
-    ars = [(w / h if h else 0.0) for w, h in zip(widths, heights)]
+    widths    = [m.get("width", 0) or 0 for m in meta]
+    heights   = [m.get("height", 0) or 1 for m in meta]
+    ars       = [(w / h if h else 0.0) for (w, h) in zip(widths, heights)]
 
-    dur_pairs = find_pairs_by_duration(durations, C["candidate_generation"]["tolSeconds"], C)
-    print(f"Duration candidates: {len(dur_pairs)}")
-    ar_pairs = find_pairs_by_ar(ars, C["candidate_generation"]["arTol"], dur_pairs, C) if C["filters"]["use_ar_filter"] else dur_pairs
-    print(f"AR-filtered candidates: {len(ar_pairs)}")
+    # Step 3: Candidate generation
+    if not skip.get("duration_filter", False):
+        if VERBOSE:
+            print("Generating duration-based candidate pairs...")
+        dur_pairs = find_pairs_by_duration(durations, C["candidate_generation"]["tolSeconds"], C)
+        print(f"Duration candidates: {len(dur_pairs)}")
+    else:
+        dur_pairs = [(i, j) for i in range(n) for j in range(i + 1, n)]
+        print(f"[SKIP] Duration filter skipped: starting with {len(dur_pairs)} total pairs")
 
-    if not ar_pairs:
-        return
+    if not skip.get("ar_filter", False):
+        if VERBOSE:
+            print("Applying AR filter...")
+        ar_pairs = find_pairs_by_ar(ars, C["candidate_generation"]["arTol"], dur_pairs, C)
+        print(f"AR-filtered candidates: {len(ar_pairs)}")
+    else:
+        ar_pairs = dur_pairs
+        print(f"[SKIP] AR filter skipped: {len(ar_pairs)} pairs remain")
 
-    if C["filters"]["use_ahash_prefilter"]:
-        pf = prefilter_pairs_with_ahash(api_url, api_key, hashes, ar_pairs, resize=C["ahash"]["resize"],
-                                        hamming_max=C["ahash"]["hammingMax"], timeout=C["timeouts"]["thumb"], C=C)
+    if not skip.get("ahash_prefilter", False):
+        if VERBOSE:
+            print("Running aHash prefilter...")
+        pf = prefilter_pairs_with_ahash(
+            api_url, api_key, hashes, ar_pairs,
+            resize=C["ahash"]["resize"],
+            hamming_max=C["ahash"]["hammingMax"],
+            timeout=C["timeouts"]["thumb"],
+            C=C
+        )
         print(f"aHash kept: {len(pf)} / {len(ar_pairs)}")
         if not pf:
+            print("No pairs survived the aHash prefilter. Exiting.")
             return
         ar_pairs = pf
+    else:
+        print(f"[SKIP] aHash prefilter skipped: passing {len(ar_pairs)} pairs to SSIM.")
 
-    dup_pairs = compare_thumbnails(api_url, api_key, hashes, ar_pairs, threshold=C["similarity_threshold"],
-                                   P=C["preprocessing"], timeout=C["timeouts"]["thumb"], C=C)
+    # Step 4: SSIM/MS-SSIM compare
+    P = C["preprocessing"]
+    dup_pairs = compare_thumbnails(
+        api_url, api_key, hashes, ar_pairs,
+        threshold=C["similarity_threshold"],
+        P=P,
+        timeout=C["timeouts"]["thumb"],
+        C=C
+    )
     print(f"Thumbnail compare found {len(dup_pairs)} duplicate pairs")
 
-    if dup_pairs:
-        rep = post_potential_duplicates(api_url, api_key, hashes, dup_pairs, do_default_merge=C["post"]["do_default_merge"],
-                                        timeout=C["timeouts"]["post"], batch_size=C["post"]["batch_size"],
-                                        max_retries=C["post"]["max_retries"], retry_pause_s=C["post"]["retry_pause_s"])
-        print(f"Posted: {rep.get('posted', 0)} | Skipped: {rep.get('skipped', 0)} | Failed: {rep.get('failed', 0)}")
+    if not dup_pairs:
+        print(f"No duplicates >= {C['similarity_threshold']:.3f}. Nothing to post.")
+        return
+
+    # Step 5: Post results
+    rep = post_potential_duplicates(
+        api_url, api_key, hashes, dup_pairs,
+        do_default_merge=C["post"]["do_default_merge"],
+        timeout=C["timeouts"]["post"],
+        batch_size=C["post"]["batch_size"],
+        max_retries=C["post"]["max_retries"],
+        retry_pause_s=C["post"]["retry_pause_s"]
+    )
+    print(f"Relationships -> Posted: {rep.get('posted', 0)} | Skipped: {rep.get('skipped', 0)} | Failed: {rep.get('failed', 0)} | Attempted: {rep.get('attempted', 0)}")
 
 
 if __name__ == "__main__":
