@@ -1,9 +1,6 @@
-requests
-pillow
-numpy
-opencv-python
-scikit-image
-tqdm
-torch
-pytorch-msssim
-pyyaml
+numpy>=1.24
+requests>=2.31
+Pillow>=9.5
+opencv-python>=4.8
+scikit-image>=0.21
+tqdm>=4.66
