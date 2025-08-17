@@ -9,7 +9,7 @@ It combines lightweight prefilters (duration, aspect ratio, perceptual hash) wit
 
 - **Tag-based search** – fetch files directly from Hydrus.
 - **aHash prefilter** – fast perceptual hashing with Hamming distance filtering.
-- **SSIMM** – configurable similarity threshold (default **0.8**).
+- **SSIM** – configurable similarity threshold (default **0.8**).
 - **Border trimming & preprocessing** – reduce false positives from black bars or padding.
 - **Parallel SSIM processing** – utilize all CPU cores automatically.
 - **Progress bars** – via `tqdm` (optional).
@@ -35,12 +35,6 @@ scikit-image>=0.21
 tqdm>=4.66
 ```
 
-Install them with:
-
-```bash
-pip install -r requirements.txt
-```
-
 ---
 
 ## Setup
@@ -51,14 +45,23 @@ git clone https://github.com/ytypo123/hydrus-duplicate-finder-python.git
 cd hydrus-duplicate-finder-python
 ```
 
-### 2. Create and activate a virtual environment *(recommended)*
+### 2. Create a virtual environment
 ```bash
 python -m venv .venv
+```
+
+### 3. Activate the environment
+```bash
 source .venv/bin/activate  # Linux/macOS
 .venv\Scripts\activate     # Windows
 ```
 
-### 3. Configure `hydrus_config.json`
+### 4. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Configure `hydrus_config.json`
 
 Create a file called `hydrus_config.json` in the project root. Example:
 
