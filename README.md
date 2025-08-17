@@ -9,7 +9,7 @@ It combines lightweight prefilters (duration, aspect ratio, perceptual hash) wit
 
 - **Tag-based search** – fetch files directly from Hydrus.
 - **aHash prefilter** – fast perceptual hashing with Hamming distance filtering.
-- **SSIM / MS-SSIM** – configurable similarity threshold (default **0.8**).
+- **SSIMM** – configurable similarity threshold (default **0.8**).
 - **Border trimming & preprocessing** – reduce false positives from black bars or padding.
 - **Parallel SSIM processing** – utilize all CPU cores automatically.
 - **Progress bars** – via `tqdm` (optional).
