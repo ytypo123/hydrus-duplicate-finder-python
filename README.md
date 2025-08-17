@@ -1,6 +1,6 @@
 # Hydrus Duplicate Finder (Python)
 
-A Python port of a MATLAB duplicate-finder pipeline, designed to work with the **Hydrus Client API** to identify potential duplicate video files.  
+A Python duplicate-finder pipeline, designed to work with the **Hydrus Client API** to identify potential duplicate video files.  
 It combines lightweight prefilters (duration, aspect ratio, perceptual hash) with structural image similarity (SSIM / MS-SSIM).
 
 ---
