@@ -69,9 +69,7 @@ Create a file called `hydrus_config.json` in the project root. Example:
   "api_key": "your-hydrus-api-key-here",
 
   "tags": [
-    ["system:filetype=video"],
-    ["system:filesize < 8MB"],
-    ["system:filesize > 7MB"]
+    ["system:filetype=video"]
   ],
 
   "verbosity": 1,
